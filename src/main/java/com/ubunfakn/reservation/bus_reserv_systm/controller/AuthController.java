@@ -92,6 +92,7 @@ public class AuthController {
     @PostMapping("/forgot")
     public ResponseEntity<?> verifyEmail(@RequestBody ForgotPassword forgotPassword1, Message message) {
         try {
+            this.forgotPasswordRepoServiceProvider.truncateTable();
             String email = forgotPassword1.getEmail();
             System.out.println(email);
             User user = this.userRepoService.getUserByEmail(email);
@@ -154,9 +155,8 @@ public class AuthController {
     }
 
     @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<?> exceptionHandler(Message message) {
-        message.setMessage("Invalid Credentials!!");
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(message);
+    public ResponseEntity<?> exceptionHandler() {
+        return new ResponseEntity<>("Invalid Credentials!!", HttpStatus.BAD_REQUEST);
     }
 
 }

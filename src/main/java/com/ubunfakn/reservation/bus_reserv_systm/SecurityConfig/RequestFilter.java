@@ -34,7 +34,7 @@ public class RequestFilter extends OncePerRequestFilter {
 
                 String username = null;
                 String token = null;
-
+                logger.info(requestHeader);
                 if(requestHeader!=null && requestHeader.startsWith("Bearer")){
                     token = requestHeader.substring(7);
                     try {

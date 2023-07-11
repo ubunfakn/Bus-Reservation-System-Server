@@ -1,5 +1,6 @@
 package com.ubunfakn.reservation.bus_reserv_systm.model;
 
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -8,11 +9,15 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ForgotPassword {
-
+public class Routes {
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    private String email;
-    private int otp;
+
+    private String number;
+    private String pickUpPoint;
+    private String dropOffPoint;
+    private String pickUpTime;
+    private String dropOffTime;
 }

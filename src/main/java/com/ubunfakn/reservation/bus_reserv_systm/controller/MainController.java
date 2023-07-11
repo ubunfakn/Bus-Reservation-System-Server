@@ -10,13 +10,13 @@ import com.ubunfakn.reservation.bus_reserv_systm.model.*;
 import com.ubunfakn.reservation.bus_reserv_systm.services.ServiceProvider.BookingsRepoServiceProvider;
 
 @RestController
-@RequestMapping("/api")
+@CrossOrigin("*")
 public class MainController {
 
     @Autowired
     private BookingsRepoServiceProvider bookingsRepoServiceProvider;
     
-    @PostMapping("/cancel")
+    @PostMapping("/auth/api/cancel")
     public ResponseEntity<?> cancelTicket(@RequestBody GetTicket getTicket){
         
         try {
@@ -28,7 +28,7 @@ public class MainController {
             }else{
                 for(int i=0;i<bookings.size();i++)
                 {
-                    if(bookings.get(i).getBookingid()==getTicket.getBookingid()){
+                    if(bookings.get(i).getId()==getTicket.getBookingid()){
                         booking = bookings.get(i);
                         break;
                     }
@@ -61,7 +61,7 @@ public class MainController {
             }else{
                 for(int i=0;i<bookings.size();i++)
                 {
-                    if(bookings.get(i).getBookingid()==getTicket.getBookingid()){
+                    if(bookings.get(i).getId()==getTicket.getBookingid()){
                         booking = bookings.get(i);
                         break;
                     }

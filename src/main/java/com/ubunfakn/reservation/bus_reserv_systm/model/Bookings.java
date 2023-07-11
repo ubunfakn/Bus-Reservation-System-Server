@@ -16,16 +16,19 @@ public class Bookings {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private String mobile;
+    private String email;
+    private String busNumber;
     private Date boardingDate;
     private String origin;
     private String destinantion;
-    @Column(unique = true)
-    private int bookingid;
     private String busType;
     private String status;
     @OneToMany(mappedBy = "bookings")
     private List<Passengers> passengers;
     @ManyToOne
     private User user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Customer customer;
 
 }
