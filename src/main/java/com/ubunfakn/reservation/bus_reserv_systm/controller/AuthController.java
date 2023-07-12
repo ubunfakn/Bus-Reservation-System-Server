@@ -127,6 +127,7 @@ public class AuthController {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(message);
             } else {
                 message.setMessage("OTP verified");
+                this.forgotPasswordRepoServiceProvider.truncateTable();
                 return ResponseEntity.status(HttpStatus.OK).body(message);
             }
         } catch (Exception e) {
@@ -138,12 +139,12 @@ public class AuthController {
     @PostMapping("/change")
     public ResponseEntity<?> changePassword(@RequestBody JwtRequest jwtRequest, Message message) {
         try {
-            ForgotPassword forgotPassword = this.forgotPasswordRepoServiceProvider.getByEmail(jwtRequest.getEmail());
-            if (forgotPassword == null) {
-                message.setMessage("Request denied!!");
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
-            }
-            this.forgotPasswordRepoServiceProvider.truncateTable();
+            // ForgotPassword forgotPassword = this.forgotPasswordRepoServiceProvider.getByEmail(jwtRequest.getEmail());
+            // if (forgotPassword == null) {
+            //     message.setMessage("Request denied!!");
+            //     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+            // }
+            // this.forgotPasswordRepoServiceProvider.truncateTable();
             User user = this.userRepoService.getUserByEmail(jwtRequest.getEmail());
             user.setPassword(this.passwordEncoder.encode(jwtRequest.getPassword()));
             user = this.userRepoService.saveUser(user);

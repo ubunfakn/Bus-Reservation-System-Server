@@ -4,7 +4,7 @@ import java.util.*;
 
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.http.*;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.access.prepost.*;
 import org.springframework.web.bind.annotation.*;
 
 import com.ubunfakn.reservation.bus_reserv_systm.model.*;
@@ -97,6 +97,9 @@ public class AdminController {
             if(users.size()==0){
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }else{
+                for(int i=0;i<users.size();i++){
+                    users.get(i).setPassword(null);
+                }
                 return ResponseEntity.ok(users);
             }
         } catch (Exception e) {
@@ -133,5 +136,59 @@ public class AdminController {
             throw e;
         }
     }
+
+    @DeleteMapping("/deleteroute/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deleteRoute(@PathVariable("id")int id){
+        try {
+            this.routesRepositoryService.deleteRouteById(id);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e);
+        }
+    }
+
+    @DeleteMapping("/deletebus/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deleteBus(@PathVariable("id")int id){
+        try {
+            this.busRepositoryService.deleteBusById(id);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e);
+        }
+    }
+
+    @DeleteMapping("/deletecustomer/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deleteCustomer(@PathVariable("id")int id){
+        try {
+            this.customerRepositoryService.deleteCustomerById(id);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e);
+        }
+    }
+
+    @GetMapping("/countall")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<EntityCount> countAll(EntityCount entityCount){
+        try {
+            List<Customer> customers = this.customerRepositoryService.getAllCustomers();
+            List<Bus> buses = this.busRepositoryService.getAllBuses();
+            List<Routes> routes = this.routesRepositoryService.getAllRoutes();
+            List<User> users = this.userRepoService.getAllUsers();
+            List<Bookings> bookings = this.bookingsRepoService.getAllBookings();
+            entityCount.setBookingCount(bookings.size());
+            entityCount.setBusCount(buses.size());
+            entityCount.setCustomerCount(customers.size());
+            entityCount.setRouteCount(routes.size());
+            entityCount.setUserCount(users.size());
+            return ResponseEntity.ok().body(entityCount);
+        } catch (Exception e) {
+            throw e;
+        }
+    }
+
 
 }

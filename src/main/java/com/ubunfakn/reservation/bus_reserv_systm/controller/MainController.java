@@ -1,5 +1,6 @@
 package com.ubunfakn.reservation.bus_reserv_systm.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,36 +8,74 @@ import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
 import com.ubunfakn.reservation.bus_reserv_systm.model.*;
+import com.ubunfakn.reservation.bus_reserv_systm.services.BusRepositoryService;
+import com.ubunfakn.reservation.bus_reserv_systm.services.RoutesRepositoryService;
 import com.ubunfakn.reservation.bus_reserv_systm.services.ServiceProvider.BookingsRepoServiceProvider;
 
 @RestController
 @CrossOrigin("*")
+@RequestMapping("/auth/api")
 public class MainController {
 
     @Autowired
     private BookingsRepoServiceProvider bookingsRepoServiceProvider;
-    
+
+    @Autowired
+    private RoutesRepositoryService repositoryService;
+
+    @Autowired
+    private BusRepositoryService busRepositoryService;
+
+    @PostMapping("/getBuses")
+    public ResponseEntity<List<Bus>> getBusesByRouteAndDate(@RequestBody RequiredBus requiredBus, Message message) {
+        try {
+            System.out.println(requiredBus.getDestination());
+            System.out.println(requiredBus.getOrigin());
+            List<Routes> listOfRoutes = this.repositoryService.getByOriginAndDestination(requiredBus.getOrigin(),
+                    requiredBus.getDestination());
+            List<Bus> listOfBus = new ArrayList<>();
+            if (listOfRoutes.size() == 0) {
+                return ResponseEntity.notFound().build();
+            } else {
+                for (int i = 0; i < listOfRoutes.size(); i++) {
+                    Bus bus = this.busRepositoryService.getByNumber(listOfRoutes.get(i).getNumber());
+                    if (requiredBus.getDate().equals(bus.getDepartureDate())) {
+                        listOfBus.add(bus);
+                    }
+                    
+                }
+            }
+            if (listOfBus.size() == 0) {
+                return ResponseEntity.notFound().build();
+            } else {
+                return ResponseEntity.ok(listOfBus);
+            }
+        } catch (Exception e) {
+            throw e;
+        }
+    }
+
     @PostMapping("/auth/api/cancel")
-    public ResponseEntity<?> cancelTicket(@RequestBody GetTicket getTicket){
-        
+    public ResponseEntity<?> cancelTicket(@RequestBody GetTicket getTicket) {
+
         try {
             System.out.println("cancel ticket request received");
             Bookings booking = null;
             List<Bookings> bookings = this.bookingsRepoServiceProvider.getBookingsByMobile(getTicket.getMobile());
-            if(bookings.size()==0){
+            if (bookings.size() == 0) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No bookings found for this Mobile Number");
-            }else{
-                for(int i=0;i<bookings.size();i++)
-                {
-                    if(bookings.get(i).getId()==getTicket.getBookingid()){
+            } else {
+                for (int i = 0; i < bookings.size(); i++) {
+                    if (bookings.get(i).getId() == getTicket.getBookingid()) {
                         booking = bookings.get(i);
                         break;
                     }
                 }
-                if(booking==null){
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Booking Id not found for entered Mobile Number");
-                }else{
-                    //update booking status to cancelled
+                if (booking == null) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body("Booking Id not found for entered Mobile Number");
+                } else {
+                    // update booking status to cancelled
                     booking.setStatus("cancelled");
                     booking = this.bookingsRepoServiceProvider.saveBooking(booking);
                     return ResponseEntity.status(HttpStatus.OK).body(booking);
@@ -44,37 +83,38 @@ public class MainController {
             }
 
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error!! Please try after sometime");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Internal Server Error!! Please try after sometime");
         }
     }
 
-
     @PostMapping("/view")
-    public ResponseEntity<?> viewTicket(@RequestBody GetTicket getTicket){
-        
+    public ResponseEntity<?> viewTicket(@RequestBody GetTicket getTicket) {
+
         try {
             System.out.println("view ticket request received");
             Bookings booking = null;
             List<Bookings> bookings = this.bookingsRepoServiceProvider.getBookingsByMobile(getTicket.getMobile());
-            if(bookings.size()==0){
+            if (bookings.size() == 0) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No bookings found for this Mobile Number");
-            }else{
-                for(int i=0;i<bookings.size();i++)
-                {
-                    if(bookings.get(i).getId()==getTicket.getBookingid()){
+            } else {
+                for (int i = 0; i < bookings.size(); i++) {
+                    if (bookings.get(i).getId() == getTicket.getBookingid()) {
                         booking = bookings.get(i);
                         break;
                     }
                 }
-                if(booking==null)
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Booking Id not found for entered Mobile Number");
+                if (booking == null)
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body("Booking Id not found for entered Mobile Number");
                 else
                     return ResponseEntity.status(HttpStatus.OK).body(booking);
-                
+
             }
 
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error!! Please try after sometime");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Internal Server Error!! Please try after sometime");
         }
     }
 }

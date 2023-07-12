@@ -24,5 +24,20 @@ public class RoutesRepositoryServiceProvider implements RoutesRepositoryService 
     public List<Routes> getAllRoutes(){
         return this.routesRepository.findAll();
     }
+
+    @Override
+    public void deleteRouteById(int id) {
+        this.routesRepository.delete(this.routesRepository.findById(id));
+    }
+
+    @Override
+    public Routes getRouteById(int id) {
+        return this.routesRepository.findById(id);
+    }
+
+    @Override
+    public List<Routes> getByOriginAndDestination(String origin, String destination) {
+        return this.routesRepository.findByOriginAndDestination(origin, destination);
+    }
     
 }

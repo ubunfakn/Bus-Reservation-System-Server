@@ -19,5 +19,17 @@ public class CustomerRepositoryServiceProvider implements CustomerRepositoryServ
     public List<Customer> getAllCustomers() {
         return this.customerRepository.findAll();
     }
+
+    @Override
+    public Customer getCustomerById(int id) {
+        return this.customerRepository.findById(id);
+    }
+
+    @Override
+    public void deleteCustomerById(int id) {
+        this.customerRepository.delete(this.customerRepository.findById(id));
+    }
+
+    
     
 }

@@ -1,7 +1,5 @@
 package com.ubunfakn.reservation.bus_reserv_systm.model;
 
-import java.util.*;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

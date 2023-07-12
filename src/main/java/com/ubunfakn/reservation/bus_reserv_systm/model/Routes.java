@@ -16,6 +16,8 @@ public class Routes {
     private int id;
 
     private String number;
+    private String origin;
+    private String destination;
     private String pickUpPoint;
     private String dropOffPoint;
     private String pickUpTime;
