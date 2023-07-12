@@ -28,7 +28,7 @@ public class Bus {
     private int capacity;
     private int available;
     private String type;
-    private Date departureDate;
-    private Date arrivalDate;
+    private String departureDate;
+    private String arrivalDate;
     private String description;  
 }

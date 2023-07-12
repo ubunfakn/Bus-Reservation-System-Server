@@ -1,5 +1,7 @@
 package com.ubunfakn.reservation.bus_reserv_systm.services.ServiceProvider;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,5 +18,10 @@ public class BusRepositoryServiceProvider implements BusRepositoryService{
     @Override
     public Bus saveBus(Bus bus) {
         return this.busRepository.save(bus);
+    }
+
+    @Override
+    public List<Bus> getAllBuses(){
+        return this.busRepository.findAll();
     }
 }

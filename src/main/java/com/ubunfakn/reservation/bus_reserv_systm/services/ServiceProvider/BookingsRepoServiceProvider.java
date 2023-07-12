@@ -24,5 +24,10 @@ public class BookingsRepoServiceProvider implements BookingsRepoService {
     public Bookings saveBooking(Bookings bookings){
         return this.saveBooking(bookings);
     }
+
+    @Override
+    public List<Bookings> getAllBookings(){
+        return this.bookingsRepository.findAll();
+    }
     
 }

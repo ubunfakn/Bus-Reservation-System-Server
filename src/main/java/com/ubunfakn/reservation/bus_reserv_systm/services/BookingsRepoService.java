@@ -8,4 +8,5 @@ public interface BookingsRepoService {
     
     public Bookings saveBooking(Bookings bookings);
     public List<Bookings> getBookingsByMobile(String mobile);
+    public List<Bookings> getAllBookings();
 }

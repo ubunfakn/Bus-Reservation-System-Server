@@ -1,5 +1,7 @@
 package com.ubunfakn.reservation.bus_reserv_systm.services.ServiceProvider;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,5 +24,14 @@ public class UserRepoServiceProvider implements UserRepoService {
     public User saveUser(User user){
          return this.userRepository.save(user);
     }
-    
+
+    @Override
+    public List<User> getAllUsers(){
+        return this.userRepository.findAll();
+    }
+
+    @Override
+    public User getUserByUserId(int id) {
+        return this.userRepository.findById(id);
+    }
 }
