@@ -18,7 +18,8 @@ public class Bookings {
     private String mobile;
     private String email;
     private String busNumber;
-    private Date boardingDate;
+    private String boardingDate;
+    private String arrivalDate;
     private String origin;
     private String destinantion;
     private String busType;

@@ -12,4 +12,5 @@ public interface RoutesRepositoryService {
     public List<Routes> getAllRoutes();
     public void deleteRouteById(int id);
     public List<Routes> getByOriginAndDestination(String origin, String destination);
+    public Routes getByBusNumber(String number);
 }

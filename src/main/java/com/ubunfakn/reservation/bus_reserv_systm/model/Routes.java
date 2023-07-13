@@ -22,4 +22,7 @@ public class Routes {
     private String dropOffPoint;
     private String pickUpTime;
     private String dropOffTime;
+    private String distance;
+    private int price;
+    private String duration;
 }

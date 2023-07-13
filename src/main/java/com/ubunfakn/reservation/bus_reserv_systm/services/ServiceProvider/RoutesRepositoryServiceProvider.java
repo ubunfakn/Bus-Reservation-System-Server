@@ -39,5 +39,10 @@ public class RoutesRepositoryServiceProvider implements RoutesRepositoryService 
     public List<Routes> getByOriginAndDestination(String origin, String destination) {
         return this.routesRepository.findByOriginAndDestination(origin, destination);
     }
+
+    @Override
+    public Routes getByBusNumber(String number){
+        return this.routesRepository.findByNumber(number);
+    }
     
 }

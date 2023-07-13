@@ -13,7 +13,8 @@ public class Passengers {
     @Id
     private int id;
     private String passengerName;
-    private String seat;
+    private int seat;
+    private String busNumber;
     private int age;
     private String gender;
     @ManyToOne(fetch = FetchType.LAZY)

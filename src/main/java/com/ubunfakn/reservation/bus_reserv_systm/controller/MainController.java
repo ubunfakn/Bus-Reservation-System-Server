@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.ubunfakn.reservation.bus_reserv_systm.model.*;
 import com.ubunfakn.reservation.bus_reserv_systm.services.BusRepositoryService;
+import com.ubunfakn.reservation.bus_reserv_systm.services.PassengersRepoService;
 import com.ubunfakn.reservation.bus_reserv_systm.services.RoutesRepositoryService;
 import com.ubunfakn.reservation.bus_reserv_systm.services.ServiceProvider.BookingsRepoServiceProvider;
 
@@ -21,17 +22,20 @@ public class MainController {
     private BookingsRepoServiceProvider bookingsRepoServiceProvider;
 
     @Autowired
-    private RoutesRepositoryService repositoryService;
+    private RoutesRepositoryService routesRepositoryService;
 
     @Autowired
     private BusRepositoryService busRepositoryService;
+
+    @Autowired
+    private PassengersRepoService passengersRepoService;
 
     @PostMapping("/getBuses")
     public ResponseEntity<List<Bus>> getBusesByRouteAndDate(@RequestBody RequiredBus requiredBus, Message message) {
         try {
             System.out.println(requiredBus.getDestination());
             System.out.println(requiredBus.getOrigin());
-            List<Routes> listOfRoutes = this.repositoryService.getByOriginAndDestination(requiredBus.getOrigin(),
+            List<Routes> listOfRoutes = this.routesRepositoryService.getByOriginAndDestination(requiredBus.getOrigin(),
                     requiredBus.getDestination());
             List<Bus> listOfBus = new ArrayList<>();
             if (listOfRoutes.size() == 0) {
@@ -55,7 +59,38 @@ public class MainController {
         }
     }
 
-    @PostMapping("/auth/api/cancel")
+    @GetMapping("/getbus/{number}")
+    public ResponseEntity<?> getAllBusesByRouteAndDate(@PathVariable("number") String number){
+        try {
+            List<Passengers> passengers = this.passengersRepoService.getPassengersByBusNumber(number);
+            List<Integer> occupiedSeats = new ArrayList<>();
+            for(int i=0;i<passengers.size();i++){
+                occupiedSeats.add(passengers.get(i).getSeat());
+            }
+            occupiedSeats.add(5);
+            occupiedSeats.add(8);
+            occupiedSeats.add(3);
+            if(occupiedSeats.size()==0){
+                return ResponseEntity.notFound().build();
+            }else{
+                return ResponseEntity.ok().body(occupiedSeats);
+            }
+        } catch (Exception e) {
+            throw e;
+        }
+    }
+
+    @GetMapping("/getprice/{number}")
+    public ResponseEntity<?> getPriceOfTicket(@PathVariable("number") String number){
+        try {
+            Routes route = this.routesRepositoryService.getByBusNumber(number);
+            return ResponseEntity.ok(route);
+        } catch (Exception e) {
+            throw e;
+        }
+    }
+
+    @PostMapping("/cancel")
     public ResponseEntity<?> cancelTicket(@RequestBody GetTicket getTicket) {
 
         try {
