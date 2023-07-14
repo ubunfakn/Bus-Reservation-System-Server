@@ -30,6 +30,11 @@ public class CustomerRepositoryServiceProvider implements CustomerRepositoryServ
         this.customerRepository.delete(this.customerRepository.findById(id));
     }
 
+    @Override
+    public Customer saveCustomer(Customer customer){
+        return this.customerRepository.save(customer);
+    }
+
     
     
 }

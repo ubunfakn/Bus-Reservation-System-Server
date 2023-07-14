@@ -22,7 +22,7 @@ public class BookingsRepoServiceProvider implements BookingsRepoService {
 
     @Override
     public Bookings saveBooking(Bookings bookings){
-        return this.saveBooking(bookings);
+        return this.bookingsRepository.save(bookings);
     }
 
     @Override

@@ -9,8 +9,10 @@ import org.springframework.web.bind.annotation.*;
 
 import com.ubunfakn.reservation.bus_reserv_systm.model.*;
 import com.ubunfakn.reservation.bus_reserv_systm.services.BusRepositoryService;
+import com.ubunfakn.reservation.bus_reserv_systm.services.CustomerRepositoryService;
 import com.ubunfakn.reservation.bus_reserv_systm.services.PassengersRepoService;
 import com.ubunfakn.reservation.bus_reserv_systm.services.RoutesRepositoryService;
+import com.ubunfakn.reservation.bus_reserv_systm.services.UserRepoService;
 import com.ubunfakn.reservation.bus_reserv_systm.services.ServiceProvider.BookingsRepoServiceProvider;
 
 @RestController
@@ -29,6 +31,12 @@ public class MainController {
 
     @Autowired
     private PassengersRepoService passengersRepoService;
+
+    @Autowired
+    private UserRepoService userRepoService;
+
+    @Autowired
+    private CustomerRepositoryService customerRepositoryService;
 
     @PostMapping("/getBuses")
     public ResponseEntity<List<Bus>> getBusesByRouteAndDate(@RequestBody RequiredBus requiredBus, Message message) {
@@ -88,6 +96,33 @@ public class MainController {
         } catch (Exception e) {
             throw e;
         }
+    }
+
+    @PostMapping("/savebooking")
+    public ResponseEntity<?> saveBooking(@RequestBody BookingAndCustomer bookingAndCustomer){
+        Customer customer = bookingAndCustomer.getCustomer();
+        Bookings bookings = bookingAndCustomer.getBookings();
+        bookings.setBooking_id(Math.round(Math.random()*(999999-100000))+1);
+        customer = this.customerRepositoryService.saveCustomer(customer);
+        bookings.setCustomer(customer);
+        bookings.setUser(this.userRepoService.getUserByEmail(customer.getEmail()));
+        List<Bookings> listOfBookings = new ArrayList<>();
+        listOfBookings.add(bookings);
+        customer.setBookings(listOfBookings);
+        List<Passengers> passengers = bookingAndCustomer.getPassenger();
+        List<Integer> seats = bookingAndCustomer.getSeat();
+        for(int i=0;i<passengers.size();i++)
+        {
+            passengers.get(i).setBusNumber(bookings.getBusNumber());
+            passengers.get(i).setBookings(bookings);
+            passengers.get(i).setSeat(seats.get(i));
+        }
+        // this.bookingsRepoServiceProvider.saveBooking(bookings);
+        for(int i=0;i<passengers.size();i++)
+        {
+            // this.passengersRepoService.savPassenger(passengers.get(i));
+        }
+        return ResponseEntity.ok(bookings.getBooking_id());
     }
 
     @PostMapping("/cancel")

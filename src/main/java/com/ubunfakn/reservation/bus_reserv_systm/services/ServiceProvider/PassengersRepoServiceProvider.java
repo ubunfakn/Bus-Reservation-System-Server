@@ -19,4 +19,9 @@ public class PassengersRepoServiceProvider implements PassengersRepoService {
     public List<Passengers> getPassengersByBusNumber(String busNumber){
         return this.passengersRepository.findByBusNumber(busNumber);
     }
+
+    @Override
+    public Passengers savPassenger(Passengers passengers){
+        return this.passengersRepository.save(passengers);
+    }
 }

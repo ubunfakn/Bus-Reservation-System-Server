@@ -11,8 +11,9 @@ import lombok.*;
 public class Passengers {
     
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    private String passengerName;
+    private String name;
     private int seat;
     private String busNumber;
     private int age;

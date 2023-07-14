@@ -9,4 +9,5 @@ public interface CustomerRepositoryService {
     public List<Customer> getAllCustomers();
     public Customer getCustomerById(int id);
     public void deleteCustomerById(int id);
+    public Customer saveCustomer(Customer customer);
 }

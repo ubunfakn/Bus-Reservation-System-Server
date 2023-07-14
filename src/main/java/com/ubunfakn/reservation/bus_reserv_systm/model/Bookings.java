@@ -23,7 +23,9 @@ public class Bookings {
     private String origin;
     private String destinantion;
     private String busType;
+    private int totalPrice;
     private String status;
+    private long booking_id;
     @OneToMany(mappedBy = "bookings")
     private List<Passengers> passengers;
     @ManyToOne
