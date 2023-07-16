@@ -10,4 +10,5 @@ public interface CustomerRepositoryService {
     public Customer getCustomerById(int id);
     public void deleteCustomerById(int id);
     public Customer saveCustomer(Customer customer);
+    public Customer getCustomerByEmail(String email);
 }

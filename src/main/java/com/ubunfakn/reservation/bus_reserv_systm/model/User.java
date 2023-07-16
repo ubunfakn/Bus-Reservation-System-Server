@@ -1,5 +1,7 @@
 package com.ubunfakn.reservation.bus_reserv_systm.model;
 
+import java.util.List;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -25,4 +27,7 @@ public class User {
     private String state;
     private String country;
     private String role;
+
+    @OneToMany(mappedBy="user")
+    private List<Bookings> bookings;
 }

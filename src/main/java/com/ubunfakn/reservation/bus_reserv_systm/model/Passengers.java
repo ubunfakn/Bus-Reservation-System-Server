@@ -18,6 +18,6 @@ public class Passengers {
     private String busNumber;
     private int age;
     private String gender;
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY,cascade=CascadeType.ALL)
     private Bookings bookings;
 }

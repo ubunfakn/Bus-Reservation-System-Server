@@ -1,19 +1,18 @@
 package com.ubunfakn.reservation.bus_reserv_systm.controller;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
+import com.razorpay.Order;
+import com.razorpay.RazorpayClient;
+import com.razorpay.RazorpayException;
 import com.ubunfakn.reservation.bus_reserv_systm.model.*;
-import com.ubunfakn.reservation.bus_reserv_systm.services.BusRepositoryService;
-import com.ubunfakn.reservation.bus_reserv_systm.services.CustomerRepositoryService;
-import com.ubunfakn.reservation.bus_reserv_systm.services.PassengersRepoService;
-import com.ubunfakn.reservation.bus_reserv_systm.services.RoutesRepositoryService;
-import com.ubunfakn.reservation.bus_reserv_systm.services.UserRepoService;
-import com.ubunfakn.reservation.bus_reserv_systm.services.ServiceProvider.BookingsRepoServiceProvider;
+import com.ubunfakn.reservation.bus_reserv_systm.services.*;
+import com.ubunfakn.reservation.bus_reserv_systm.services.ServiceProvider.*;
 
 @RestController
 @CrossOrigin("*")
@@ -38,6 +37,9 @@ public class MainController {
     @Autowired
     private CustomerRepositoryService customerRepositoryService;
 
+    @Autowired
+    private PaymentServiceProvider paymentServiceProvider;
+
     @PostMapping("/getBuses")
     public ResponseEntity<List<Bus>> getBusesByRouteAndDate(@RequestBody RequiredBus requiredBus, Message message) {
         try {
@@ -54,7 +56,7 @@ public class MainController {
                     if (requiredBus.getDate().equals(bus.getDepartureDate())) {
                         listOfBus.add(bus);
                     }
-                    
+
                 }
             }
             if (listOfBus.size() == 0) {
@@ -68,19 +70,16 @@ public class MainController {
     }
 
     @GetMapping("/getbus/{number}")
-    public ResponseEntity<?> getAllBusesByRouteAndDate(@PathVariable("number") String number){
+    public ResponseEntity<?> getAllBusesByRouteAndDate(@PathVariable("number") String number) {
         try {
             List<Passengers> passengers = this.passengersRepoService.getPassengersByBusNumber(number);
-            List<Integer> occupiedSeats = new ArrayList<>();
-            for(int i=0;i<passengers.size();i++){
+            Set<Integer> occupiedSeats = new HashSet<>();
+            for (int i = 0; i < passengers.size(); i++) {
                 occupiedSeats.add(passengers.get(i).getSeat());
             }
-            occupiedSeats.add(5);
-            occupiedSeats.add(8);
-            occupiedSeats.add(3);
-            if(occupiedSeats.size()==0){
+            if (occupiedSeats.size() == 0) {
                 return ResponseEntity.notFound().build();
-            }else{
+            } else {
                 return ResponseEntity.ok().body(occupiedSeats);
             }
         } catch (Exception e) {
@@ -89,7 +88,7 @@ public class MainController {
     }
 
     @GetMapping("/getprice/{number}")
-    public ResponseEntity<?> getPriceOfTicket(@PathVariable("number") String number){
+    public ResponseEntity<?> getPriceOfTicket(@PathVariable("number") String number) {
         try {
             Routes route = this.routesRepositoryService.getByBusNumber(number);
             return ResponseEntity.ok(route);
@@ -99,62 +98,93 @@ public class MainController {
     }
 
     @PostMapping("/savebooking")
-    public ResponseEntity<?> saveBooking(@RequestBody BookingAndCustomer bookingAndCustomer){
+    public ResponseEntity<?> saveBooking(@RequestBody BookingAndCustomer bookingAndCustomer) {
         Customer customer = bookingAndCustomer.getCustomer();
         Bookings bookings = bookingAndCustomer.getBookings();
-        bookings.setBooking_id(Math.round(Math.random()*(999999-100000))+1);
-        customer = this.customerRepositoryService.saveCustomer(customer);
+        List<Passengers> passengers = bookingAndCustomer.getPassenger();
+        Bus bus = this.busRepositoryService.getByNumber(bookings.getBusNumber());
+        Routes routes = this.routesRepositoryService.getByBusNumber(bookings.getBusNumber());
+        List<Integer> seats = bookingAndCustomer.getSeat();
+        
+        Customer customerFromDatabase = this.customerRepositoryService.getCustomerByEmail(customer.getEmail());
+        if(customerFromDatabase == null){
+            this.customerRepositoryService.saveCustomer(customer);
+        }else{
+            customer = customerFromDatabase;
+        }
+        bus.setAvailable(bus.getAvailable() - passengers.size());
+        bookings.setBus(bus);
+        bookings.setRoutes(routes);
+        bookings.setBookingId(Math.round(Math.random() * (999999 - 100000)) + 1);
         bookings.setCustomer(customer);
         bookings.setUser(this.userRepoService.getUserByEmail(customer.getEmail()));
-        List<Bookings> listOfBookings = new ArrayList<>();
-        listOfBookings.add(bookings);
-        customer.setBookings(listOfBookings);
-        List<Passengers> passengers = bookingAndCustomer.getPassenger();
-        List<Integer> seats = bookingAndCustomer.getSeat();
-        for(int i=0;i<passengers.size();i++)
-        {
-            passengers.get(i).setBusNumber(bookings.getBusNumber());
+
+        this.bookingsRepoServiceProvider.saveBooking(bookings);
+        for (int i = 0; i < passengers.size(); i++) {
+            passengers.get(i).setBusNumber(bookings.getBus().getNumber());
             passengers.get(i).setBookings(bookings);
             passengers.get(i).setSeat(seats.get(i));
+            this.passengersRepoService.savPassenger(passengers.get(i));
         }
-        // this.bookingsRepoServiceProvider.saveBooking(bookings);
-        for(int i=0;i<passengers.size();i++)
-        {
-            // this.passengersRepoService.savPassenger(passengers.get(i));
+        
+        // Creating payment Order
+        try {
+
+            RazorpayClient razorpayClient = new RazorpayClient("rzp_test_PFH56BsCj9Z0Ty", "IJKS8EJtve9OsyFrtOfuUR8D");
+
+            // JSONOBJECT creation
+            JSONObject jsonObject = new JSONObject();
+            double amount = bookings.getTotalPrice();
+            jsonObject.put("amount", amount * 100);
+            jsonObject.put("currency", "INR");
+            long num = Math.round(Math.random() * 99999);
+            jsonObject.put("receipt", "receipt_" + num);
+
+            // Creating order
+            Order order = razorpayClient.orders.create(jsonObject);
+
+            System.out.println(order);
+
+            // Saving data to Database
+            Payment payment = new Payment();
+            payment.setAmount(bookings.getTotalPrice());
+            payment.setOrderId(order.get("id"));
+            payment.setCreated_at(order.get("created_at"));
+            payment.setCurrency("INR");
+            payment.setCustomer(customer);
+            payment.setPartial_payment(false);
+            payment.setPaymentId(null);
+            payment.setReciept(order.get("receipt"));
+            payment.setStatus("created");
+            payment.setBookings(bookings);
+
+            this.paymentServiceProvider.savPayment(payment);
+            System.out.println(order.toString());
+            return ResponseEntity.ok().body(order.toString());
+
+        } catch (RazorpayException razorpayException) {
+            throw new RuntimeException("Error in RazorPay Integration: " + razorpayException.getMessage());
         }
-        return ResponseEntity.ok(bookings.getBooking_id());
     }
 
-    @PostMapping("/cancel")
-    public ResponseEntity<?> cancelTicket(@RequestBody GetTicket getTicket) {
-
+    @PostMapping("/paymentupdate")
+    public ResponseEntity<?> verifyAndSavePayment(@RequestBody Map<String, Object> data) {
         try {
-            System.out.println("cancel ticket request received");
-            Bookings booking = null;
-            List<Bookings> bookings = this.bookingsRepoServiceProvider.getBookingsByMobile(getTicket.getMobile());
-            if (bookings.size() == 0) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No bookings found for this Mobile Number");
-            } else {
-                for (int i = 0; i < bookings.size(); i++) {
-                    if (bookings.get(i).getId() == getTicket.getBookingid()) {
-                        booking = bookings.get(i);
-                        break;
-                    }
-                }
-                if (booking == null) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                            .body("Booking Id not found for entered Mobile Number");
-                } else {
-                    // update booking status to cancelled
-                    booking.setStatus("cancelled");
-                    booking = this.bookingsRepoServiceProvider.saveBooking(booking);
-                    return ResponseEntity.status(HttpStatus.OK).body(booking);
-                }
-            }
-
+            System.out.println(data + "*****************");
+            String order_id = data.get("razorpay_order_id").toString();
+            Payment payment = this.paymentServiceProvider.getByOrder_id(order_id);
+            System.out.println(1);
+            payment.setPaymentId(data.get("razorpay_payment_id").toString());
+            System.out.println(5);
+            payment.setStatus(data.get("paymentStatus").toString());
+            System.out.println(2);
+            payment = this.paymentServiceProvider.savPayment(payment);
+            Bookings bookings = payment.getBookings();
+            bookings.setStatus("Successful");
+            this.bookingsRepoServiceProvider.saveBooking(bookings);
+            return ResponseEntity.ok().body(bookings.getBookingId());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Internal Server Error!! Please try after sometime");
+            return ResponseEntity.internalServerError().build();
         }
     }
 
@@ -162,29 +192,51 @@ public class MainController {
     public ResponseEntity<?> viewTicket(@RequestBody GetTicket getTicket) {
 
         try {
-            System.out.println("view ticket request received");
-            Bookings booking = null;
-            List<Bookings> bookings = this.bookingsRepoServiceProvider.getBookingsByMobile(getTicket.getMobile());
-            if (bookings.size() == 0) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No bookings found for this Mobile Number");
+            Bookings bookings = this.bookingsRepoServiceProvider.getBookingsByBookingId(getTicket.getBookingid());
+            if (bookings == null) {
+                System.out.println("null");
+                return ResponseEntity.notFound().build();
             } else {
-                for (int i = 0; i < bookings.size(); i++) {
-                    if (bookings.get(i).getId() == getTicket.getBookingid()) {
-                        booking = bookings.get(i);
-                        break;
-                    }
+                if (bookings.getCustomer().getMobile().equals(getTicket.getMobile())) {
+                    Map <String,Object> data = new HashMap<>();
+                    data.put("bookings", bookings);
+                    data.put("customer", bookings.getCustomer());
+                    data.put("passenger", bookings.getPassengers());
+                    data.put("bus", bookings.getBus());
+                    data.put("route", bookings.getRoutes());
+                    return ResponseEntity.ok().body(data);
                 }
-                if (booking == null)
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                            .body("Booking Id not found for entered Mobile Number");
-                else
-                    return ResponseEntity.status(HttpStatus.OK).body(booking);
-
+                return ResponseEntity.notFound().build();
             }
 
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Internal Server Error!! Please try after sometime");
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/cancel/{bookingId}")
+    public ResponseEntity<?> cancelTicket(@PathVariable("bookingId")long bookingId) {
+        try {
+            Bookings bookings = this.bookingsRepoServiceProvider.getBookingsByBookingId(bookingId);
+            System.out.println(bookings.getStatus());
+            if(bookings.getStatus().equals("Successful")){
+                System.out.println(bookingId);
+                bookings.setStatus("Cancelled");
+                this.bookingsRepoServiceProvider.saveBooking(bookings);
+                Bus bus = bookings.getBus();
+                List<Passengers> passengers = bookings.getPassengers();
+                bus.setAvailable(bus.getAvailable()+passengers.size());
+                this.busRepositoryService.saveBus(bus);
+                for(int i=0;i<passengers.size();i++){
+                    passengers.get(i).setSeat(0);
+                    this.passengersRepoService.savPassenger(passengers.get(i));
+                }
+                return ResponseEntity.ok().build();
+            }else{
+                return ResponseEntity.badRequest().build();
+            }
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
         }
     }
 }

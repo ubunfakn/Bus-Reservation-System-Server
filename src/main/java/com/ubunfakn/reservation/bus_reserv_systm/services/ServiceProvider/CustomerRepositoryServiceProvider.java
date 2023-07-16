@@ -35,6 +35,11 @@ public class CustomerRepositoryServiceProvider implements CustomerRepositoryServ
         return this.customerRepository.save(customer);
     }
 
+    @Override
+    public Customer getCustomerByEmail(String email){
+        return this.customerRepository.findByEmail(email);
+    }
+
     
     
 }

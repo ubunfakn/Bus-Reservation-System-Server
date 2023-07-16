@@ -4,11 +4,14 @@ import java.io.IOException;
 
 import org.slf4j.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.*;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import io.jsonwebtoken.*;
@@ -27,8 +30,7 @@ public class RequestFilter extends OncePerRequestFilter {
     private JWTHelper jwtHelper;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)throws IOException,ServletException,IllegalStateException{
 
                 String requestHeader = request.getHeader("Authorization");
 
@@ -66,6 +68,11 @@ public class RequestFilter extends OncePerRequestFilter {
                     }
                 }
                 filterChain.doFilter(request, response);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<?> exceptionHandler() {
+        return new ResponseEntity<>("Invalid Credentials!!", HttpStatus.NOT_FOUND);
     }
     
 }

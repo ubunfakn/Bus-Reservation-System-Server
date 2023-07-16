@@ -1,5 +1,6 @@
 package com.ubunfakn.reservation.bus_reserv_systm.model;
-import java.util.*;
+
+import java.util.List;
 
 import jakarta.persistence.*;
 import lombok.*;

@@ -65,19 +65,21 @@ public class AuthController {
     @PostMapping("/save")
     @ResponseBody
     public ResponseEntity<?> saveUser(@RequestBody User user, Message message) {
-        System.out.println(user);
+        
         user.setRole("ROLE_USER");
         user.setPassword(this.passwordEncoder.encode(user.getPassword()));
         user = this.userRepoService.saveUser(user);
+        System.out.println(user);
         if (user != null) {
             try {
                 UserDetails userDetails = new org.springframework.security.core.userdetails.User(user.getEmail(),
                         user.getPassword(), new ArrayList<>());
                 String token = this.jwtHelper.generateToken(userDetails);
-                JwtResponse jwtResponse = JwtResponse.builder().username(userDetails.getUsername())
+                JwtResponse jwtResponse = JwtResponse.builder().username(user.getEmail())
                         .token(token)
                         .role(user.getRole())
                         .build();
+                jwtResponse.setUsername(user.getEmail());
                 return ResponseEntity.status(HttpStatus.OK).body(jwtResponse);
             } catch (Exception e) {
                 message.setMessage("Something went wrong from our end");

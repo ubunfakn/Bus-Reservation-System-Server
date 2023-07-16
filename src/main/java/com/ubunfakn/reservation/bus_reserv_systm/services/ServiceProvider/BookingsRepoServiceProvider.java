@@ -13,12 +13,7 @@ import com.ubunfakn.reservation.bus_reserv_systm.services.BookingsRepoService;
 public class BookingsRepoServiceProvider implements BookingsRepoService {
     
     @Autowired
-    private BookingsRepository bookingsRepository;
-
-    @Override
-    public List<Bookings> getBookingsByMobile(String mobile) {
-        return this.bookingsRepository.findByMobile(mobile);
-    }
+    private BookingsRepository bookingsRepository; // }
 
     @Override
     public Bookings saveBooking(Bookings bookings){
@@ -28,6 +23,16 @@ public class BookingsRepoServiceProvider implements BookingsRepoService {
     @Override
     public List<Bookings> getAllBookings(){
         return this.bookingsRepository.findAll();
+    }
+
+    @Override
+    public Bookings getBookingsByBookingId(long bookingId) {
+        return this.bookingsRepository.findByBookingId(bookingId);
+    }
+
+    @Override
+    public void deleteBooking(Bookings bookings){
+        this.bookingsRepository.delete(bookings);
     }
     
 }

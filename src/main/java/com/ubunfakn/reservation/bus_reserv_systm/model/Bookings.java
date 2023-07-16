@@ -2,6 +2,8 @@ package com.ubunfakn.reservation.bus_reserv_systm.model;
 
 import java.util.*;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -15,22 +17,28 @@ public class Bookings {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    private String mobile;
-    private String email;
     private String busNumber;
-    private String boardingDate;
-    private String arrivalDate;
-    private String origin;
-    private String destinantion;
-    private String busType;
     private int totalPrice;
     private String status;
-    private long booking_id;
-    @OneToMany(mappedBy = "bookings")
+    private long bookingId;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "bookings",cascade=CascadeType.ALL)
     private List<Passengers> passengers;
-    @ManyToOne
+
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
     private User user;
 
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY,cascade=CascadeType.ALL)
+    private Routes routes;
+
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY,cascade=CascadeType.ALL)
+    private Bus bus;
+
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     private Customer customer;
 
