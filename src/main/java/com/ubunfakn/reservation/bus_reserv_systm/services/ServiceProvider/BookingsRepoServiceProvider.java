@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.ubunfakn.reservation.bus_reserv_systm.model.Bookings;
+import com.ubunfakn.reservation.bus_reserv_systm.model.User;
 import com.ubunfakn.reservation.bus_reserv_systm.repository.BookingsRepository;
 import com.ubunfakn.reservation.bus_reserv_systm.services.BookingsRepoService;
 
@@ -33,6 +34,11 @@ public class BookingsRepoServiceProvider implements BookingsRepoService {
     @Override
     public void deleteBooking(Bookings bookings){
         this.bookingsRepository.delete(bookings);
+    }
+
+    @Override
+    public List<Bookings> getBookingsByUser(User user){
+        return this.bookingsRepository.findByUser(user);
     }
     
 }

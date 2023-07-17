@@ -124,13 +124,30 @@ public class AdminController {
 
     @GetMapping("/bookings")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<Bookings>> getAllBookings(){
+    public ResponseEntity<?> getAllBookings(){
         try {
-            List<Bookings> bookings = this.bookingsRepoService.getAllBookings();
-            if(bookings.size()==0){
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-            }else{
-                return ResponseEntity.ok(bookings);
+                List<Bookings> bookings = this.bookingsRepoService.getAllBookings();
+                List<BookingResponse> bookingResponses = new ArrayList<>();
+                if(bookings.size()==0){
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+                }else{
+                    for(int i=0;i<bookings.size();i++)
+                    {
+                        BookingResponse bookingResponse = new BookingResponse();
+                        bookingResponse.setBoardingDate(bookings.get(i).getBus().getDepartureDate());
+                        bookingResponse.setBookingId(bookings.get(i).getBookingId());
+                        bookingResponse.setBusNumber(bookings.get(i).getBusNumber());
+                        bookingResponse.setBusType(bookings.get(i).getBus().getType());
+                        bookingResponse.setCid(bookings.get(i).getCustomer().getId());
+                        bookingResponse.setDestination(bookings.get(i).getRoutes().getDestination());
+                        bookingResponse.setEmail(bookings.get(i).getCustomer().getEmail());
+                        bookingResponse.setMobile(bookings.get(i).getCustomer().getMobile());
+                        bookingResponse.setOrigin(bookings.get(i).getRoutes().getOrigin());
+                        bookingResponse.setPassengerCount(bookings.get(i).getPassengers().size());
+                        bookingResponse.setStatus(bookings.get(i).getStatus());
+                        bookingResponses.add(bookingResponse);
+                    }
+                return ResponseEntity.ok().body(bookingResponses);
             }
         } catch (Exception e) {
             throw e;
