@@ -130,7 +130,7 @@ public class MainController {
         // Creating payment Order
         try {
 
-            RazorpayClient razorpayClient = new RazorpayClient("rzp_test_PFH56BsCj9Z0Ty", "IJKS8EJtve9OsyFrtOfuUR8D");
+            RazorpayClient razorpayClient = new RazorpayClient("rzp_test_5SKZYSprPJkNCr", "OB0ULkNjdwcn6kQlZQtLfkp2");
 
             // JSONOBJECT creation
             JSONObject jsonObject = new JSONObject();
